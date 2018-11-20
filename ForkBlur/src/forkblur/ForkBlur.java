@@ -83,9 +83,9 @@ public class ForkBlur extends RecursiveAction {
             gt /= (float) mBlurWidth;
             bt /= (float) mBlurWidth;
             
-            rt = (float) 255 - rt;
+            /*rt = (float) 255 - rt;
             gt = (float) 255 - gt;
-            bt = (float) 255 - bt;
+            bt = (float) 255 - bt;*/
             // Re-assemble destination pixel.
             int dpixel = (0xff000000)
                     | (((int) rt) << 16)
