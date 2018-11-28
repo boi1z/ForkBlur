@@ -12,16 +12,12 @@ import javax.swing.*;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import JavaBase2.*;
+import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingNode;
-import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.ComboBox;
-import javax.swing.table.TableColumn;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
@@ -32,7 +28,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -53,6 +48,7 @@ public class BusinessContacts extends JApplet
     private static String firstID = "";
     private static String lastID = "";
     private static DefaultTableModel model;
+    private static JTable mainView;
     private static int rowID = -1;
     
     public static void main(String[] args) throws JBInputException_V2 
@@ -112,13 +108,26 @@ public class BusinessContacts extends JApplet
         });
         
         //Creates the table in the database and gives it the appropriate fields
-        db.createTable("Contacts", "First_Name,Last_Name,Company,Email,Phone_Number,Office_Number,Notes");
-        db.insert("Contacts","First_Name,Last_Name,Company,Email,Phone_Number,Office_Number,Notes",
-                    "Zach,Simmons,Lander,zach@lander.edu,1231234567,123,This is just a test",0);
-        db.insert("Contacts","First_Name,Last_Name,Company,Email,Phone_Number,Office_Number,Notes",
-                "Will,Avery,Lander,will@lander.edu,9879876543,456,This is just a test",0);
-        db.insert("Contacts","First_Name,Last_Name,Company,Email,Phone_Number,Office_Number,Notes",
-                "Bryant,Roach,Lander,bryant@lander.edu,1800000000,789,This is just a test",0);
+        File file = new File("save.bin");
+        if(file.exists())
+        {
+            db.readFile("save.bin");
+        }
+        else
+        {
+            db.createTable("Contacts", "First_Name,Last_Name,Company,Email,Phone_Number,Office_Number,Notes");
+            db.insert("Contacts","First_Name,Last_Name,Company,Email,Phone_Number,Office_Number,Notes",
+                        "Zach,Simmons,Lander,zach@lander.edu,1231234567,123,This is just a test",0);
+            db.insert("Contacts","First_Name,Last_Name,Company,Email,Phone_Number,Office_Number,Notes",
+                    "Will,Avery,Lander,will@lander.edu,9879876543,456,This is just a test",0);
+            db.insert("Contacts","First_Name,Last_Name,Company,Email,Phone_Number,Office_Number,Notes",
+                    "Bryant,Roach,Somewhere Else,thisisaverylongemail@lander.edu,1800000000000000000,789,This is just a test.\nThis is just a test.\nThis is just a test.",0);
+            db.insert("Contacts","First_Name,Last_Name,Company,Email,Phone_Number,Office_Number,Notes",
+                    "Farha,Ali,Lander,fali@lander.edu,1234567,789,She is a professor",0);
+            db.insert("Contacts","First_Name,Last_Name,Company,Email,Phone_Number,Office_Number,Notes",
+                    "Gilliean,Lee,Lander,glee@lander.edu,1112222,789,He is a professor",0);
+            db.writeFile("save.bin");
+        }
     }
     
     // <editor-fold desc="Defualt Swing Setup">
@@ -642,9 +651,16 @@ public class BusinessContacts extends JApplet
         searchHeader.setSpacing(15);
         searchHeader.setAlignment(Pos.CENTER);
         searchHeader.setPadding(new Insets(5, 50, 25, 50));
+        Text label = new Text("Search: ");
+        label.setFont(Font.font ("Arial", 14));
         TextField searchBox = new TextField();
         searchBox.setPrefWidth(300);
         searchBox.setMinWidth(300);
+        Text label1 = new Text("In: ");
+        label1.setFont(Font.font ("Arial", 14));
+        TextField matchBox = new TextField();
+        matchBox.setPrefWidth(150);
+        matchBox.setMinWidth(150);
         Button searchButton = new Button();
         searchButton.setText("Search");
         searchButton.setFont(Font.font ("Arial", 12));
@@ -654,16 +670,65 @@ public class BusinessContacts extends JApplet
             @Override
             public void handle(ActionEvent event) {
 
+                String match = "";
+                if(matchBox.getText().equalsIgnoreCase("First"))
+                {
+                    match = "First_Name";
+                }
+                else if(matchBox.getText().equalsIgnoreCase("Last"))
+                {
+                    match = "Last_Name";
+                }
+                else if(matchBox.getText().equalsIgnoreCase("Company"))
+                {
+                    match = "Company";
+                }
+                else if(matchBox.getText().equalsIgnoreCase("Email"))
+                {
+                    match = "Email";
+                }
+                else if(matchBox.getText().equalsIgnoreCase("Phone"))
+                {
+                    match = "Phone_Number";
+                }
+                else if(matchBox.getText().equalsIgnoreCase("Office"))
+                {
+                    match = "Office_Number";
+                }
+                else
+                {
+                    match = "Notes";
+                }
+                
                 try {
-                    searchEntries("*",searchBox.getText());
+                    mainView.setModel(searchEntries(match,searchBox.getText()));
                 } catch (Exception e) {
                    e.printStackTrace();
                 }
+                
                 searchBox.clear();
+                matchBox.clear();
+                
+            }
+        });
+        Button resetButton = new Button();
+        resetButton.setText("Reset");
+        resetButton.setFont(Font.font ("Arial", 12));
+        resetButton.setMinWidth(75);
+        resetButton.setPrefWidth(75);
+        resetButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+
+                try {
+                    mainView.setModel(model);
+                } catch (Exception e) {
+                   e.printStackTrace();
+                }
             }
         });
         //</editor-fold>
-        searchHeader.getChildren().addAll(searchBox,searchButton);
+        searchHeader.getChildren().addAll(label,searchBox,label1,matchBox,searchButton, resetButton);
         mainHeader.getChildren().addAll(mainTitle,searchHeader);
         mainHeaderPane.getChildren().addAll(mainHeader);
         //</editor-fold>
@@ -684,7 +749,7 @@ public class BusinessContacts extends JApplet
         String[] header = {"First Name","Last Name","Company","Email","Phone Number","Office Number","Notes"};
         model = new DefaultTableModel(items, header);
         model.setColumnIdentifiers(header);
-        JTable mainView = new JTable(model);
+        mainView = new JTable(model);
         mainView.setMinimumSize(new Dimension(900,370));
         mainView.setPreferredSize(new Dimension(900,370));
         mainView.setRowHeight(30);
@@ -817,10 +882,14 @@ public class BusinessContacts extends JApplet
         db.delete("Contacts", selectedRow);
     }
     
-    private void searchEntries(String optionInput, String searchInput) throws JBInputException_V2
+    private TableModel searchEntries(String optionInput, String searchInput) throws JBInputException_V2
     {
-        Table_V2 temp = db.retrieve("Contacts","*","*");
-        System.out.println(temp.retrieve("*", optionInput+"EQUALSSIGNORECASE"+searchInput));
+        Table_V2 temp = db.retrieve("Contacts","*",optionInput+"CONTAINSIGNORECASE"+searchInput);
+        System.out.println(temp);
+        String[][] items = db.getMultiArray(temp);
+        String[] header = {"First Name","Last Name","Company","Email","Phone Number","Office Number","Notes"};
+        TableModel searchModel = new DefaultTableModel(items, header);
+        return searchModel;
     }
 }
 
