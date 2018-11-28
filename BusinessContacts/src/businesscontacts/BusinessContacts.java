@@ -53,6 +53,7 @@ public class BusinessContacts extends JApplet
     private static String firstID = "";
     private static String lastID = "";
     private static DefaultTableModel model;
+    private static int rowID = -1;
     
     public static void main(String[] args) throws JBInputException_V2 
     {
@@ -431,6 +432,13 @@ public class BusinessContacts extends JApplet
             @Override
             public void handle(ActionEvent event) {
                 editEntry(firstID, lastID,firstField2.getText(),lastField2.getText(),companyField2.getText(),emailField2.getText(),phoneField2.getText(),officeField2.getText(),notesArea2.getText());
+                model.setValueAt(firstField2.getText(), rowID, 0);
+                model.setValueAt(lastField2.getText(), rowID, 1);
+                model.setValueAt(companyField2.getText(), rowID, 2);
+                model.setValueAt(emailField2.getText(), rowID, 3);
+                model.setValueAt(phoneField2.getText(), rowID, 4);
+                model.setValueAt(officeField2.getText(), rowID, 5);
+                model.setValueAt(notesArea2.getText(), rowID, 6);
                 addFrame.setVisible(false);
                 editFrame.setVisible(false);
                 viewFrame.setVisible(false);
@@ -654,26 +662,8 @@ public class BusinessContacts extends JApplet
                 searchBox.clear();
             }
         });
-        Button refreshButton = new Button();
-        refreshButton.setText("Refresh");
-        refreshButton.setFont(Font.font ("Arial", 12));
-        refreshButton.setMinWidth(75);
-        refreshButton.setPrefWidth(75);
-        refreshButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                try
-                {
-                    showEntries();
-                }
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
-            }
-        });
         //</editor-fold>
-        searchHeader.getChildren().addAll(searchBox,searchButton, refreshButton);
+        searchHeader.getChildren().addAll(searchBox,searchButton);
         mainHeader.getChildren().addAll(mainTitle,searchHeader);
         mainHeaderPane.getChildren().addAll(mainHeader);
         //</editor-fold>
@@ -735,8 +725,23 @@ public class BusinessContacts extends JApplet
         editButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                firstID = "";
-                lastID = "";
+                int rowIndex = -1;
+                rowIndex = mainView.getSelectedRow();
+                rowID = rowIndex;
+                if(rowIndex >= 0)
+                {
+                    firstID = model.getValueAt(rowIndex,0).toString();
+                    lastID = model.getValueAt(rowIndex,1).toString();
+                    firstField2.setText(model.getValueAt(rowIndex,0).toString());
+                    lastField2.setText(model.getValueAt(rowIndex,1).toString());
+                    companyField2.setText(model.getValueAt(rowIndex,2).toString());
+                    emailField2.setText(model.getValueAt(rowIndex,3).toString());
+                    phoneField2.setText(model.getValueAt(rowIndex,4).toString());
+                    officeField2.setText(model.getValueAt(rowIndex,5).toString());
+                    notesArea2.setText(model.getValueAt(rowIndex,6).toString());
+                }
+                frame.setFocusable(false);
+                
                 editFrame.setVisible(true);
                 frame.setFocusable(false);
             }
@@ -754,7 +759,13 @@ public class BusinessContacts extends JApplet
                 rowIndex = mainView.getSelectedRow();
                 if(rowIndex >= 0)
                 {
-                    
+                    firstField3.setText(model.getValueAt(rowIndex,0).toString());
+                    lastField3.setText(model.getValueAt(rowIndex,1).toString());
+                    companyField3.setText(model.getValueAt(rowIndex,2).toString());
+                    emailField3.setText(model.getValueAt(rowIndex,3).toString());
+                    phoneField3.setText(model.getValueAt(rowIndex,4).toString());
+                    officeField3.setText(model.getValueAt(rowIndex,5).toString());
+                    notesArea3.setText(model.getValueAt(rowIndex,6).toString());
                 }
                 frame.setFocusable(false);
             }
@@ -787,12 +798,6 @@ public class BusinessContacts extends JApplet
         mainRoot.setCenter(mainBodyPane);
         mainRoot.setBottom(mainFooterPane);
         mainContainer.setScene(new Scene(mainRoot));
-    }
-    
-    private void showEntries() throws JBInputException_V2
-    {
-        Table_V2 results = db.retrieve("Contacts", "*" , "*");
-        System.out.println(results);
     }
     
     private void addEntry(String fName, String lName, String company, String email, String phoneNum, String officeNum, String notes) throws JBInputException_V2
